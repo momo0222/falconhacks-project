@@ -3,14 +3,15 @@ import { Container } from 'react-bootstrap';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { NewNote } from './NewNote';
 import { useLocalStorage } from './useLocalStorage';
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { NoteList } from './NoteList';
 import "../src/assets/styles/styles.css"
 import {v4 as uuidV4} from "uuid"
 import { NoteLayout } from './NoteLayout';
 import { Note } from './Note';
-
+import WebViewer from "@pdftron/webviewer"
 import { EditNote } from './EditNote';
+import "./App.css"
 export type Note = {
   id: string
 }& NoteData
@@ -34,7 +35,14 @@ export type Tag = {
 function App() {
   const [notes, setNotes] = useLocalStorage<RawNote[]>("NOTES", [])
   const [tags, setTags] = useLocalStorage<Tag[]>("TAGS", [])
+  const viewerDiv = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    WebViewer({
+      path: "lib",
+      initialDoc: "https://pdftron.s3.amazonaws.com/downloads/pl/webviewer-demo.pdf"
+    }, viewerDiv.current as HTMLDivElement).then()
+  }, [])
   const notesWithTags = useMemo(()=>{
     return notes.map(note => {
       return{ ...note, tags: tags.filter(tag => note.tagIds.includes(tag.id))}
@@ -111,8 +119,10 @@ function App() {
           </Route>
         <Route path = "*" element = {<Navigate to ="/"/>}/>
     </Routes>
-  </Container>
 
+      <div className = "webviewer" ref = {viewerDiv}></div>
+  </Container>
+    
   )
 }
 
